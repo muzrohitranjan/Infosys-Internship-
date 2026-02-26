@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>People Counting Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #1a1a1a; color: #fff; }
+        .header { background: #2d2d2d; padding: 20px; text-align: center; }
+        .container { display: flex; padding: 20px; gap: 20px; }
+        .video-section { flex: 2; }
+        .stats-section { flex: 1; background: #2d2d2d; padding: 20px; border-radius: 8px; }
+        img { width: 100%; border-radius: 8px; }
+        .stat-card { background: #3d3d3d; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .stat-value { font-size: 2em; color: #4CAF50; font-weight: bold; }
+        .zone-list { margin-top: 20px; }
+        .zone-item { padding: 10px; background: #3d3d3d; margin: 5px 0; border-radius: 5px; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎥 People Counting System</h1>
+        <p>Real-time monitoring and analytics</p>
+    </div>
+    
+    <div class="container">
+        <div class="video-section">
+            <img src="{{ url_for('video_feed') }}" alt="Live Feed">
+        </div>
+        
+        <div class="stats-section">
+            <h2>Live Statistics</h2>
+            
+            <div class="stat-card">
+                <h3>Total People</h3>
+                <div class="stat-value" id="total">0</div>
+            </div>
+            
+            <div class="zone-list">
+                <h3>Zone Statistics</h3>
+                <div id="zones"></div>
+            </div>
+            
+            <div class="stat-card" style="margin-top: 20px;">
+                <small>Last Updated: <span id="timestamp">-</span></small>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function updateStats() {
+            fetch('/stats')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('total').textContent = data.total;
+                    
+                    const zonesDiv = document.getElementById('zones');
+                    zonesDiv.innerHTML = '';
+                    
+                    for (const [zone, count] of Object.entries(data.zones)) {
+                        const zoneItem = document.createElement('div');
+                        zoneItem.className = 'zone-item';
+                        zoneItem.innerHTML = `<span>${zone}</span><strong>${count}</strong>`;
+                        zonesDiv.appendChild(zoneItem);
+                    }
+                    
+                    const date = new Date(data.timestamp * 1000);
+                    document.getElementById('timestamp').textContent = date.toLocaleTimeString();
+                });
+        }
+        
+        setInterval(updateStats, 1000);
+        updateStats();
+    </script>
+</body>
+</html>
